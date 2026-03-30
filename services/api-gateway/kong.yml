@@ -1,0 +1,293 @@
+# services/api-gateway/kong.yml
+# Kong API Gateway Configuration for AI Scraping SaaS
+# Format Version 3.0 - Production Ready
+
+_format_version: "3.0"
+_transform: true
+
+services:
+  # API Service - Core FastAPI Orchestration
+  - name: api-service
+    url: http://api-service:8000
+    connect_timeout: 60000
+    write_timeout: 60000
+    read_timeout: 60000
+    retries: 3
+    routes:
+      - name: api-routes
+        paths:
+          - /api/v1
+        strip_path: false
+        preserve_host: true
+        methods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+          - PATCH
+          - OPTIONS
+        protocols:
+          - http
+          - https
+
+  # Agent Service - AI Agent Orchestration
+  - name: agent-service
+    url: http://agent-service:8001
+    connect_timeout: 120000
+    write_timeout: 120000
+    read_timeout: 120000
+    retries: 2
+    routes:
+      - name: agent-routes
+        paths:
+          - /api/agents
+        strip_path: true
+        methods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+
+  # Realtime Service - WebSockets & Streaming
+  - name: realtime-service
+    url: http://realtime-service:3000
+    connect_timeout: 60000
+    write_timeout: 60000
+    read_timeout: 60000
+    routes:
+      - name: realtime-routes
+        paths:
+          - /ws
+          - /socket.io
+        strip_path: false
+        protocols:
+          - http
+          - https
+
+  # Billing Service - Stripe & Credits
+  - name: billing-service
+    url: http://billing-service:8002
+    connect_timeout: 30000
+    write_timeout: 30000
+    read_timeout: 30000
+    retries: 3
+    routes:
+      - name: billing-routes
+        paths:
+          - /api/billing
+        strip_path: true
+
+  # Analytics Service - Metrics & Tracking
+  - name: analytics-service
+    url: http://analytics-service:8003
+    connect_timeout: 30000
+    write_timeout: 30000
+    read_timeout: 30000
+    routes:
+      - name: analytics-routes
+        paths:
+          - /api/analytics
+        strip_path: true
+
+  # Notification Service - Multi-channel alerts
+  - name: notification-service
+    url: http://notification-service:8004
+    connect_timeout: 30000
+    write_timeout: 30000
+    read_timeout: 30000
+    routes:
+      - name: notification-routes
+        paths:
+          - /api/notifications
+        strip_path: true
+
+# Global Plugins Configuration
+plugins:
+  # CORS - Global configuration
+  - name: cors
+    config:
+      origins:
+        - "*"
+      methods:
+        - GET
+        - POST
+        - PUT
+        - DELETE
+        - PATCH
+        - OPTIONS
+      headers:
+        - Authorization
+        - Content-Type
+        - X-Request-ID
+        - X-API-Key
+        - X-Client-Version
+      exposed_headers:
+        - X-Request-ID
+        - X-RateLimit-Limit
+        - X-RateLimit-Remaining
+      credentials: true
+      max_age: 3600
+
+  # Rate Limiting - Global tier
+  - name: rate-limiting
+    config:
+      minute: 100
+      hour: 1000
+      policy: redis
+      redis_host: redis
+      redis_port: 6379
+      redis_database: 0
+      fault_tolerant: true
+      hide_client_headers: false
+      redis_timeout: 2000
+
+  # Request Transformer - Add headers
+  - name: request-transformer
+    config:
+      add:
+        headers:
+          - X-Forwarded-By:Kong-Gateway
+          - X-API-Gateway:AI-Scraping-SaaS-v1
+          - X-Request-Source:external
+
+  # Response Transformer - Security headers
+  - name: response-transformer
+    config:
+      add:
+        headers:
+          - X-Content-Type-Options:nosniff
+          - X-Frame-Options:DENY
+          - X-XSS-Protection:1; mode=block
+          - Strict-Transport-Security:max-age=31536000; includeSubDomains
+          - Referrer-Policy:strict-origin-when-cross-origin
+
+  # Bot Detection
+  - name: bot-detection
+    config:
+      allow:
+        - "Mozilla/5.0*"
+        - "curl*"
+        - "PostmanRuntime*"
+      deny: []
+
+  # Prometheus Metrics
+  - name: prometheus
+    config:
+      per_consumer: true
+      status_code_metrics: true
+      latency_metrics: true
+      bandwidth_metrics: true
+      upstream_health_metrics: true
+
+# Service-specific plugins
+  # API Service - JWT Authentication required
+  - name: jwt
+    service: api-service
+    config:
+      uri_param_names: []
+      cookie_names: []
+      key_claim_name: iss
+      secret_is_base64: false
+      claims_to_verify:
+        - exp
+      run_on_preflight: true
+      maximum_expiration: 86400
+
+  # API Service - Stricter rate limiting
+  - name: rate-limiting
+    service: api-service
+    config:
+      minute: 60
+      hour: 2000
+      policy: redis
+      redis_host: redis
+      redis_port: 6379
+
+  # Agent Service - Higher limits for AI processing
+  - name: rate-limiting
+    service: agent-service
+    config:
+      minute: 30
+      hour: 500
+      policy: redis
+      redis_host: redis
+      redis_port: 6379
+
+  # Billing Service - Strict limits for financial ops
+  - name: rate-limiting
+    service: billing-service
+    config:
+      minute: 20
+      hour: 200
+      policy: redis
+      redis_host: redis
+      redis_port: 6379
+
+# Upstreams with health checks
+upstreams:
+  - name: api-service-upstream
+    targets:
+      - target: api-service:8000
+        weight: 100
+    healthchecks:
+      active:
+        healthy:
+          interval: 10
+          successes: 2
+        unhealthy:
+          interval: 10
+          http_failures: 3
+          tcp_failures: 3
+          timeouts: 5
+        http_path: /health
+        timeout: 5
+        type: http
+        concurrency: 10
+      passive:
+        healthy:
+          successes: 2
+        unhealthy:
+          http_failures: 3
+          tcp_failures: 3
+          timeouts: 5
+
+  - name: agent-service-upstream
+    targets:
+      - target: agent-service:8001
+        weight: 100
+    healthchecks:
+      active:
+        healthy:
+          interval: 15
+          successes: 2
+        unhealthy:
+          interval: 15
+          http_failures: 3
+        http_path: /health
+        timeout: 10
+
+# Consumers for service-to-service auth
+consumers:
+  - username: internal-api-service
+    custom_id: internal-api-001
+  - username: internal-agent-service
+    custom_id: internal-agent-001
+  - username: internal-worker-service
+    custom_id: internal-worker-001
+  - username: internal-billing-service
+    custom_id: internal-billing-001
+
+# JWT credentials for consumers (keys should be rotated in production)
+jwts:
+  - consumer: internal-api-service
+    key: api-service-internal-key
+    secret: ${INTERNAL_API_JWT_SECRET}
+  - consumer: internal-agent-service
+    key: agent-service-internal-key
+    secret: ${INTERNAL_AGENT_JWT_SECRET}
+  - consumer: internal-worker-service
+    key: worker-service-internal-key
+    secret: ${INTERNAL_WORKER_JWT_SECRET}
+  - consumer: internal-billing-service
+    key: billing-service-internal-key
+    secret: ${INTERNAL_BILLING_JWT_SECRET}

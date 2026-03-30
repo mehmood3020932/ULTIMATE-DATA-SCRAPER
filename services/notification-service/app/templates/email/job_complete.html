@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Job Complete</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #4CAF50; color: white; padding: 20px; text-align: center; }
+        .content { padding: 20px; background: #f9f9f9; }
+        .button { display: inline-block; padding: 10px 20px; background: #4CAF50; color: white; text-decoration: none; border-radius: 5px; }
+        .footer { padding: 20px; text-align: center; color: #666; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Scraping Job {{ 'Completed' if success else 'Failed' }}</h1>
+        </div>
+        <div class="content">
+            <p>Your scraping job <strong>{{ job_id }}</strong> has {{ 'completed successfully' if success else 'failed' }}.</p>
+            <p><a href="{{ dashboard_url }}" class="button">View Results</a></p>
+        </div>
+        <div class="footer">
+            <p>AI Scraping SaaS Platform</p>
+        </div>
+    </div>
+</body>
+</html>

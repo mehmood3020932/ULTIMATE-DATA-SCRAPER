@@ -1,0 +1,182 @@
+openapi: 3.0.0
+info:
+  title: AI Scraping SaaS API
+  description: Enterprise AI-powered web scraping platform
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: api@aiscraping.com
+
+servers:
+  - url: https://api.aiscraping.com/api/v1
+    description: Production
+  - url: http://localhost:8000/api/v1
+    description: Development
+
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        '200':
+          description: Service healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthCheck'
+
+  /auth/register:
+    post:
+      summary: Register new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreate'
+      responses:
+        '201':
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  /auth/login:
+    post:
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserLogin'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Token'
+
+  /scraping/jobs:
+    post:
+      summary: Create scraping job
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScrapingJobCreate'
+      responses:
+        '201':
+          description: Job created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScrapingJob'
+
+components:
+  schemas:
+    HealthCheck:
+      type: object
+      properties:
+        status:
+          type: string
+        version:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+
+    UserCreate:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+        full_name:
+          type: string
+
+    UserLogin:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+        full_name:
+          type: string
+        subscription_tier:
+          type: string
+
+    Token:
+      type: object
+      properties:
+        access_token:
+          type: string
+        refresh_token:
+          type: string
+        token_type:
+          type: string
+        expires_in:
+          type: integer
+
+    ScrapingJobCreate:
+      type: object
+      required:
+        - instructions
+      properties:
+        name:
+          type: string
+        instructions:
+          type: object
+          properties:
+            target_url:
+              type: string
+              format: uri
+            instructions:
+              type: string
+            config:
+              type: object
+
+    ScrapingJob:
+      type: object
+      properties:
+        id:
+          type: string
+        status:
+          type: string
+          enum: [pending, queued, running, completed, failed, cancelled]
+        target_url:
+          type: string
+        pages_scraped:
+          type: integer
+        items_extracted:
+          type: integer
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agent-service
+  namespace: ai-scraping
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: agent-service
+  template:
+    metadata:
+      labels:
+        app: agent-service
+    spec:
+      containers:
+      - name: agent-service
+        image: ai-scraping/agent-service:latest
+        ports:
+        - containerPort: 8001
+        envFrom:
+        - secretRef:
+            name: app-secrets
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "1000m"
+          limits:
+            memory: "4Gi"
+            cpu: "2000m"

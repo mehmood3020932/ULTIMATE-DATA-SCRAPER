@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package scraping;
+
+message ScrapingJob {
+    string id = 1;
+    string user_id = 2;
+    string target_url = 3;
+    string instructions = 4;
+    JobConfig config = 5;
+    int64 created_at = 6;
+}
+
+message JobConfig {
+    int32 max_depth = 1;
+    int32 max_pages = 2;
+    int32 timeout_seconds = 3;
+    bool follow_pagination = 4;
+    bool javascript_enabled = 5;
+    string user_agent = 6;
+    string proxy_country = 7;
+}
+
+message ScrapingResult {
+    string job_id = 1;
+    bool success = 2;
+    string html = 3;
+    string title = 4;
+    repeated string links = 5;
+    bytes data = 6;
+    string error = 7;
+    int32 page_count = 8;
+    int64 duration_ms = 9;
+    int64 timestamp = 10;
+}
+
+service ScrapingService {
+    rpc ExecuteJob(ScrapingJob) returns (ScrapingResult);
+    rpc StreamJobUpdates(ScrapingJob) returns (stream ScrapingResult);
+}

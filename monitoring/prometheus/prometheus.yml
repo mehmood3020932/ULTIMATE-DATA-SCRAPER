@@ -1,0 +1,68 @@
+
+---
+
+### Monitoring Missing Files:
+
+**monitoring/prometheus/prometheus.yml**
+```yaml
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+
+rule_files: []
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'api-service'
+    static_configs:
+      - targets: ['api-service:8000']
+    metrics_path: /metrics
+
+  - job_name: 'agent-service'
+    static_configs:
+      - targets: ['agent-service:8001']
+    metrics_path: /metrics
+
+  - job_name: 'worker-service'
+    static_configs:
+      - targets: ['worker-service:8080']
+    metrics_path: /metrics
+
+  - job_name: 'realtime-service'
+    static_configs:
+      - targets: ['realtime-service:3000']
+    metrics_path: /metrics
+
+  - job_name: 'billing-service'
+    static_configs:
+      - targets: ['billing-service:8002']
+    metrics_path: /metrics
+
+  - job_name: 'notification-service'
+    static_configs:
+      - targets: ['notification-service:8004']
+    metrics_path: /metrics
+
+  - job_name: 'analytics-service'
+    static_configs:
+      - targets: ['analytics-service:8003']
+    metrics_path: /metrics
+
+  - job_name: 'kubernetes-pods'
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names:
+            - ai-scraping
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+        action: keep
+        regex: true

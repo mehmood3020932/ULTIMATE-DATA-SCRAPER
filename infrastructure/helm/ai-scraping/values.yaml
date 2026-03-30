@@ -1,0 +1,70 @@
+# Default values for ai-scraping
+
+global:
+  environment: production
+  imageRegistry: ""
+  imagePullSecrets: []
+
+api-service:
+  replicaCount: 3
+  image:
+    repository: ai-scraping/api-service
+    tag: latest
+  service:
+    type: ClusterIP
+    port: 8000
+
+agent-service:
+  replicaCount: 5
+  image:
+    repository: ai-scraping/agent-service
+    tag: latest
+
+worker-service:
+  replicaCount: 10
+  image:
+    repository: ai-scraping/worker-service
+    tag: latest
+
+realtime-service:
+  replicaCount: 3
+  image:
+    repository: ai-scraping/realtime-service
+    tag: latest
+
+billing-service:
+  replicaCount: 2
+  image:
+    repository: ai-scraping/billing-service
+    tag: latest
+
+notification-service:
+  replicaCount: 2
+  image:
+    repository: ai-scraping/notification-service
+    tag: latest
+
+analytics-service:
+  replicaCount: 2
+  image:
+    repository: ai-scraping/analytics-service
+    tag: latest
+
+# Dependencies
+postgresql:
+  enabled: true
+  auth:
+    database: scraping
+    username: scraping
+    password: changeme
+
+redis:
+  enabled: true
+  auth:
+    enabled: false
+
+kafka:
+  enabled: true
+
+elasticsearch:
+  enabled: true

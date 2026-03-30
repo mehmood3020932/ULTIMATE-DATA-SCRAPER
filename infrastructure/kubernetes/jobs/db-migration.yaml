@@ -1,0 +1,17 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: db-migration
+  namespace: ai-scraping
+spec:
+  template:
+    spec:
+      containers:
+      - name: migration
+        image: ai-scraping/api-service:latest
+        command: ["alembic", "upgrade", "head"]
+        envFrom:
+        - secretRef:
+            name: app-secrets
+      restartPolicy: OnFailure
+  backoffLimit: 4

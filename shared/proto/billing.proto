@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package billing;
+
+message CreditBalance {
+    string user_id = 1;
+    double balance = 2;
+    string currency = 3;
+}
+
+message ChargeRequest {
+    string user_id = 1;
+    double amount = 2;
+    string description = 3;
+}
+
+message ChargeResponse {
+    bool success = 1;
+    double new_balance = 2;
+    string transaction_id = 3;
+}
+
+service BillingService {
+    rpc GetBalance(CreditBalance) returns (CreditBalance);
+    rpc ChargeCredits(ChargeRequest) returns (ChargeResponse);
+}

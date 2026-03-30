@@ -1,0 +1,20 @@
+{
+  "mappings": {
+    "properties": {
+      "job_id": { "type": "keyword" },
+      "user_id": { "type": "keyword" },
+      "status": { "type": "keyword" },
+      "target_url": { "type": "text" },
+      "instructions": { "type": "text" },
+      "created_at": { "type": "date" },
+      "completed_at": { "type": "date" },
+      "duration_ms": { "type": "long" },
+      "pages_scraped": { "type": "integer" },
+      "items_extracted": { "type": "integer" },
+      "credits_consumed": { "type": "float" },
+      "agents_used": { "type": "keyword" },
+      "llm_calls": { "type": "integer" },
+      "confidence_score": { "type": "float" }
+    }
+  }
+}

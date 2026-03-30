@@ -1,0 +1,24 @@
+# Web Framework
+fastapi==0.109.2
+uvicorn[standard]==0.27.1
+
+# Payment
+stripe==8.4.0
+
+# Database
+sqlalchemy[asyncio]==2.0.27
+asyncpg==0.29.0
+
+# Caching
+redis==5.0.1
+
+# Kafka
+aiokafka==0.13.0      # updated from 0.9.1
+
+# Validation & Settings
+pydantic==2.6.1
+pydantic-settings==2.1.0
+
+# Utilities
+python-dotenv==1.0.1
+structlog==24.1.0
