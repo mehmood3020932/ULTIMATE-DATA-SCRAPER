@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+      - cache
+
+  db:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: database_name
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  cache:
+    image: redis:latest
+
+  queue:
+    image: rabbitmq:latest
+    ports:
+      - "5672:5672"
+      - "15672:15672" # RabbitMQ management
+
+volumes:
+  db_data:
